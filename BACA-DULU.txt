@@ -1,0 +1,14 @@
+Password ERM Amaranth (PWA)
+
+Isi folder: index.html, manifest.webmanifest, sw.js, dan file ikon (png)
+Semua file harus berada di satu folder yang sama.
+
+PWA hanya bisa dipasang bila dibuka lewat HTTPS (atau localhost).
+Membuka index.html langsung dari penyimpanan HP tidak akan memasang PWA.
+
+Setelah di-hosting:
+- Android (Chrome): menu titik tiga > Instal aplikasi / Tambahkan ke layar utama
+- iPhone (Safari): Bagikan > Tambah ke Layar Utama
+
+PENTING: file ini berisi password orang lain. Jangan hosting di alamat publik
+tanpa perlindungan. Gunakan hosting privat/berpassword.

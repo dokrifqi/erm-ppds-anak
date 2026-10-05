@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffd21f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ERM Amaranth">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Password ERM Amaranth</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --ink:#14213d; --muted:#5d6678; --line:#dfe3ea;
+  --yellow:#ffd21f; --yellow-ink:#14213d; --accent:#14213d; --accent-ink:#ffffff;
+  --chip:#e9ecf2; --ok:#1f7a4d;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#10131a; --card:#181d27; --ink:#eef1f7; --muted:#9aa3b5; --line:#262d3b;
+    --chip:#222a38; --accent:#ffd21f; --accent-ink:#14213d; --ok:#5fd39a; }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:150px}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:20;background:var(--yellow);color:var(--yellow-ink);
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px;
+  border-bottom:3px solid var(--yellow-ink)}
+h1{margin:0 0 8px;font-size:21px;font-weight:800;letter-spacing:-.01em}
+.sub{font-size:12.5px;margin:-4px 0 8px;opacity:.8}
+.search{position:relative}
+.search input{width:100%;border:2px solid var(--yellow-ink);border-radius:10px;
+  background:#fff;color:#14213d;font:inherit;padding:10px 12px 10px 38px;outline:none}
+.search input:focus{box-shadow:0 0 0 3px rgba(20,33,61,.25)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:#14213d}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;margin:0 -14px;padding-left:14px;padding-right:14px;
+  scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:2px solid var(--yellow-ink);background:transparent;color:var(--yellow-ink);
+  border-radius:99px;padding:5px 12px;font:600 13px/1.2 inherit;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--yellow-ink);color:var(--yellow)}
+main{padding:0 38px calc(env(safe-area-inset-bottom,0px) + 90px) 12px}
+.letter{position:sticky;top:var(--hh,150px);z-index:5;margin:14px -12px 6px -12px;padding:3px 12px;
+  background:var(--bg);font-weight:800;font-size:15px;color:var(--muted);
+  border-left:6px solid var(--yellow)}
+.person{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 8px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;
+  color:inherit;font:inherit;padding:11px 12px;cursor:pointer}
+.av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  font-weight:800;font-size:16px;background:var(--yellow);color:#14213d}
+.nm{font-weight:650;line-height:1.25;overflow-wrap:anywhere}
+.gp{font-size:12.5px;color:var(--muted);margin-top:1px}
+.chev{margin-left:auto;flex:none;width:18px;height:18px;stroke:var(--muted);transition:transform .15s}
+.person.open .chev{transform:rotate(180deg)}
+.detail{display:none;border-top:1px dashed var(--line);padding:6px 12px 12px}
+.person.open .detail{display:block}
+.field{display:flex;align-items:center;gap:8px;padding:7px 0}
+.field+.field{border-top:1px solid var(--line)}
+.lab{flex:none;width:72px;font-size:12.5px;color:var(--muted)}
+.val{flex:1;min-width:0;font:600 15px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.btn{flex:none;border:1.5px solid var(--accent);background:transparent;color:var(--accent);
+  border-radius:8px;padding:6px 10px;font:600 13px/1 inherit;cursor:pointer;min-width:58px}
+.btn.solid{background:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible,.chip:focus-visible,.row:focus-visible,.rail button:focus-visible{outline:3px solid var(--ok);outline-offset:2px}
+.empty{text-align:center;color:var(--muted);padding:48px 12px}
+.rail{position:fixed;right:0;top:50%;transform:translateY(-45%);z-index:15;display:flex;flex-direction:column;
+  padding:4px 0;max-height:70vh}
+.rail button{background:none;border:0;color:var(--accent);font:700 11px/1 inherit;padding:2.5px 8px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translate(-50%,20px);
+  background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-weight:600;font-size:14px;
+  opacity:0;pointer-events:none;transition:.18s;z-index:30}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.note{font-size:12px;color:var(--muted);text-align:center;padding:18px 8px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (min-width:700px){
+  main,header>*{max-width:640px;margin-left:auto;margin-right:auto}
+  main{padding-right:44px}
+  header{padding-left:0;padding-right:0}
+  header>*{padding-left:14px;padding-right:14px}
+  .chips{margin:0 auto}
+}
+</style>
+</head>
+<body>
+<header id="hd">
+  <h1>Password ERM Amaranth</h1>
+  <div class="sub" id="count"></div>
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Cari nama atau username" autocomplete="off" aria-label="Cari">
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="Filter kelompok"></div>
+</header>
+<main id="list" aria-live="polite"></main>
+<nav class="rail" id="rail" aria-label="Indeks huruf"></nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* Format: "Nama|username|password" */
+const RAW = [
+["DPJP", [
+"dr. Husnia Auliyatul Umma, Sp.A, M.Kes|Husnia|aulia",
+"dr. Rekno Widati, Sp.A|Rekno|rekno",
+"dr. Agustina Wulandari, Sp.A, Subsp.Nefro(K), M.Kes|agustinaw81|agustinaw81",
+"dr. Pridania Vidya Ayuningtyas, Sp.A|Pridania|Pridania",
+"dr. David Anggara Putra, Sp.A|Davidanggara|112358",
+"Dr. dr. Ismiranti Andarini, Sp.A, M.Kes|Mira|drmira",
+"Dr. dr. Muhammad Riza, Sp.A, Subsp.HO(K), M.Kes|riza_anak|2611",
+"dr. Septin Widiretnani, Sp.A, Subsp.HO(K), M.Kes|Septinwidiretnani|Septin",
+"dr. Evi Rokhayati, Sp.A, Subsp.GH(K), M.Kes|evi_rokhayati|1234",
+"dr. Annang Giri Moelyo, Sp.A, Subsp.Endo(K), M.Kes|annanggm|1234",
+"dr. Pitra Sekarhandini, Sp.A|Pitrasekarhandini|Pitrasekar",
+"dr. Diah Lintang Kawuryan, Sp.A, M.Kes|Lintang|Lintang",
+"Dr. dr. Fadhilah Tia Nur, Sp.A, Subsp.Neuro(K), M.Kes|fadhilah|fadhilah",
+"dr. Bagus Artiko, Sp.A, Subsp.Kardio(K), M.Kes|bagus artiko|ipdsa",
+"Dr. dr. Sri Lilijanti W., Sp.A, Subsp.Kardio(K)|srilili04|1530",
+"Dr. dr. Dwi Hidayah, Sp.A, Subsp.Neo(K), M.Kes|dwihidayah|7272",
+"dr. Dewinda Candrarukmi, Sp.A|dewindacandrarukmi|7890",
+"dr. Pudjiastuti, Sp.A, Subsp.ETIA(K)|drpudjiastuti|5860",
+"dr. Sri Martuti, Sp.A, Subsp.ETIA(K), M.Kes|Smart|1203",
+"dr. Irfan Dzakir Nugroho, Sp.A, Subsp.HO(K), M.Biomed|irfan.dzakir|12341234",
+"dr. Andhika Trisna Putra, Sp.A, Subsp.Neo(K), M.Biomed|Andhika|Neonatologi",
+"dr. Sari Dwi Jayanti, Sp.A(K)|Sari86|Sari",
+"dr. Damayanti Ika Prasanti, Sp.A|damayantiikap|020121",
+"dr. Sandi Nugraha, Sp.A, Subsp.NPM(K), M.Biomed|sandi|nutrisi",
+"Dr. dr. Hari Wahyu Nugroho, Sp.A, Subsp.TKPS(K), M.Kes|Hari wahyu|Indonesia",
+"dr. Hanum Ferdian, Sp.A|Hanum|2025",
+"dr. Mas Ayu Lubna, Sp.A, Subsp.Kardio(K)|Lubna|16041985"
+]],
+["Residen (lainnya)", [
+"dr. Azizah Chairiani|Riani|150591",
+"dr. Andi Annisa A. A. A. H|nisaahalid|azkiya5718"
+]],
+["Angkatan Pak Hanif", [
+"dr. Refilia Rukmanasari|Refirukma|1234",
+"dr. Shahdan T. Maulana|shahdantaufikm|1234",
+"dr. Yunita Desy W.|yunitadesyw|1234",
+"dr. Iqbal M. Malik|iqbalmaumalik|1234",
+"dr. Rifah Rosyidah|Rifahr2|1234"
+]],
+["Angkatan Pak Aziz", [
+"dr. Abdul Aziz|azizikhrez|1234",
+"dr. Candrika Izzatika|candrikaizza|1234",
+"dr. Dewi Rahmita Sari|drahmita|12345",
+"dr. Ferina Nur Haqiqi|ferinanur|Pediatri04",
+"dr. Fitri Ika|fitriika|5678",
+"dr. Pupus Ledysta|ledysta|4321",
+"dr. Raka Novadlu Cordita|rakacordita|1234",
+"dr. Tri|Trikus|1234"
+]],
+["Angkatan Pak Awan", [
+"dr. Ardiriawan|awann|1122",
+"dr. Andita Delifauzan S|anditasyabana|1234",
+"dr. Anjar Widarini|widarini|1234",
+"dr. Asti Pramita Sari|astidot|qwerty",
+"dr. Clara Kusuma Sri H|clarakusuma|1234",
+"dr. Itsnaini Maulidya N|lidyaimn|1234",
+"dr. Khayatun Budiarti|budiarti|1234",
+"dr. Pritania Prameswara P|pritaniaputri|1616",
+"dr. Soraya Sahidha|sorayaya|1234",
+"dr. Ulfa Puspita R|fafaulfa|0101"
+]],
+["Angkatan Pak Bima", [
+"dr. Norma Mukti Bimacahya|bima|2121",
+"dr. Eddy Teguh Pribadi|eddypribadi|2603",
+"dr. Aisyah Ummu Fahma|fahma|1234",
+"dr. Brando Wily|brando|1616",
+"dr. Faiza Ruby|faizaruby|0404",
+"dr. Fachru Riza Achmad|fachru|1212",
+"dr. Fitriana Kusuma Wardhani|nanafit|1234",
+"dr. Ita Purwanti|itapurwa|1111v",
+"dr. Nur Afifah|afifah|1111",
+"dr. Nurul Azmi|azmi|1234",
+"dr. Dina Luthfiyah|Dinaa|8990",
+"dr. Rabi’atul Adawiyah|rabiatul|1234",
+"dr. Rika Haeriyah|rikahaeriyah|1234"
+]],
+["Angkatan Pak Nugra", [
+"dr. Amalia Puswitasari|Amels|1717",
+"dr. Devi Amara|devia|1009",
+"dr. Febrian Naranggi AP|naranggi|1234",
+"dr. Firdausi Wulan Santosa|Firdafws|0814",
+"dr. Hanif Nugra Pujiyanto|hanifnugra|1212",
+"dr. Iske Lucia Ganda|iske|1234",
+"dr. Ratih Mega Astari|ratihmega|1234",
+"dr. Sulfita Launda|sulfita|1234",
+"dr. Wegig Amanu|wegig|2424",
+"dr. Wulan Zumaroh Azmi|zuma|1906",
+"dr. Yoga Malanda|yogam|2727",
+"dr. Yulia Eka Hastuti|Uli|1515"
+]],
+["Angkatan Pak Allief", [
+"dr. Allief Himamana|Allief|2020",
+"dr. Avicena Hapsah P|senahp|1234",
+"dr. Fairuz Zahidah|zahidah|8586",
+"dr. Fitroh Annisah|fitroh|1234",
+"dr. Lisa Lailatannur|lisala|1234",
+"dr. Nabila Hafizah|bila|1902",
+"dr. Naufal Aria Prakarsa|naufal|4422",
+"dr. Nur Amalia Fauziah|nuramalia|1234",
+"dr. Prita Malinda Y|pritamy|2121",
+"dr. Rika Oktania Sari|oktania|3333",
+"dr. Savina Amalia Olga Melati|saolga|1412",
+"dr. Sheila Prilia A|Sheila07|0204"
+]],
+["Angkatan Bu Naili", [
+"dr. Agnes Yessy P|agnesyessy|*enter* lalu spasi*",
+"dr. Alinda Bella Fazrina|Alindabella|alindabella",
+"dr. Dewi Sekarsari|Tatadewi|tatadewi",
+"dr. Fahmi Wahyu Rakhmanda|fahmiwr|1234",
+"dr. Fuad Adi Prasetyo|Fuadadip|fuadadip",
+"dr. Irna Fiseba|irnafiseba|irnafiseba",
+"dr. Kharismalitha Amira|Kamira|kamira",
+"dr. Naili Nur Sa'adah|nailinsn|5925",
+"dr. Peter Darmaatmaja|Peterds25|peterds25",
+"dr. Rizky Arianto Nugroho|Rizkyarianto16|rizkyarianto16",
+"dr. Srisabrina Christi|Christia82|christia82",
+"dr. Zenia Purnama Putri|zeniapm|1122"
+]],
+["Angkatan Pak Chandra", [
+"dr. Chandra|chand|chand",
+"dr. Dewi Amani H.|amani|amani",
+"dr. Elvira Pratiwi|Elvira|Elvira",
+"dr. Endang Y. Angraini|angraini|321321",
+"dr. Intan Pratiwi|intan25|intan",
+"dr. Muhammad Irfan|muha25|muha25",
+"dr. Nur I. Agita S.|gita123|gita123",
+"dr. Riana Suwarni|arni25|Arni123",
+"dr. Titah Arief C. K.|titah|titah",
+"dr. Torika Anggi P.|torika|anggi"
+]],
+["Angkatan Pak Jerman", [
+"dr. Jermansyah DD Khairari|jerman|jermandd",
+"dr. Alfan Al Ghifari Sudarmanto|AGXfari|sembrani",
+"dr. Anggraini Lalang Buana|lalan6|lalan6",
+"dr. Arina Aulia Ul-Haq|arin44|arin44",
+"dr. Eka Fitri Sari Ningrum|ningrum10|ningrumeka10",
+"dr. Garba Sandhi Wusana Despriyatmoko|garba|sandhi",
+"dr. Mochammad Alif Ariesando|ari17|ari17",
+"dr. Muhammad Mahmud Ansori|mahmud12|mm12",
+"dr. Putri Nurfaadhilah Basari|sasa94|basari94",
+"dr. Ratu Hanny Anggorowati|ratu|hanny"
+]],
+["Angkatan Pak Abi", [
+"dr. Bagus Hidayaturrahman Abiyyu|abiyyu11|abiyyu11",
+"dr. Ainin Meisynthia|aininm09|mei",
+"dr. Amelia Lucky Ragil Lupita|ragil29|1",
+"dr. Fahrireza Mahardhika|reza354|123",
+"dr. Floresya Kartika Farmawati|flo0|flo0",
+"dr. Marhaeni Adelaide Puspita|adel83|adel83",
+"dr. Muhammad Firdian Umam|umam99|umam99",
+"dr. Nurul Hidayah|daya1|daya1",
+"dr. Patrick Luckend Sahusilawane|luckend07|luckend07",
+"dr. Yusak Aditya Setyawan|yusak95|yusak95"
+]]
+];
+
+const PEOPLE = [];
+RAW.forEach(([group, arr]) => arr.forEach(s => {
+  const [name, user, pass] = s.split("|");
+  const core = name.replace(/^((dr|Dr)\.?\s*)+/, "").trim();
+  PEOPLE.push({name, user, pass, group, core, letter: core[0].toUpperCase()});
+}));
+PEOPLE.sort((a,b) => a.core.localeCompare(b.core, "id"));
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let filter = "Semua", query = "", openKey = null;
+
+const GROUPS = ["Semua", ...RAW.map(r => r[0])];
+$("chips").innerHTML = GROUPS.map(g =>
+  `<button class="chip" data-g="${esc(g)}" aria-pressed="${g===filter}">${esc(g.replace("Angkatan ",""))}</button>`).join("");
+$("chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  filter = b.dataset.g;
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.g === filter));
+  render();
+});
+$("q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); render(); });
+
+function render(){
+  const list = PEOPLE.filter(p =>
+    (filter === "Semua" || p.group === filter) &&
+    (!query || p.name.toLowerCase().includes(query) || p.user.toLowerCase().includes(query)));
+  $("count").textContent = list.length + " dari " + PEOPLE.length + " kontak";
+  if (!list.length){
+    $("list").innerHTML = `<div class="empty">Tidak ada kontak yang cocok.<br>Coba kata kunci lain atau pilih “Semua”.</div>`;
+    $("rail").innerHTML = ""; return;
+  }
+  let html = "", cur = "", letters = [];
+  list.forEach(p => {
+    if (p.letter !== cur){ cur = p.letter; letters.push(cur); html += `<div class="letter" id="L-${cur}">${cur}</div>`; }
+    const key = p.group + "|" + p.user;
+    const open = key === openKey;
+    html += `<div class="person${open?" open":""}" data-key="${esc(key)}">
+      <button class="row" aria-expanded="${open}">
+        <span class="av">${esc(p.letter)}</span>
+        <span><div class="nm">${esc(p.name)}</div><div class="gp">${esc(p.group)}</div></span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="detail">
+        <div class="field"><span class="lab">Username</span><span class="val">${esc(p.user)}</span>
+          <button class="btn solid" data-copy="u">Salin</button></div>
+        <div class="field"><span class="lab">Password</span><span class="val" data-pw>••••••</span>
+          <button class="btn" data-show>Lihat</button>
+          <button class="btn solid" data-copy="p">Salin</button></div>
+      </div></div>`;
+  });
+  html += `<p class="note">Berisi kredensial pribadi. Simpan hanya di perangkat sendiri dan jangan dibagikan atau diunggah ke tempat umum.</p>`;
+  $("list").innerHTML = html;
+  $("rail").innerHTML = letters.map(l => `<button data-l="${l}" aria-label="Ke huruf ${l}">${l}</button>`).join("");
+}
+
+$("list").addEventListener("click", e => {
+  const card = e.target.closest(".person"); if (!card) return;
+  const p = PEOPLE.find(x => (x.group + "|" + x.user) === card.dataset.key);
+  const copyBtn = e.target.closest("[data-copy]");
+  if (copyBtn){ copy(copyBtn.dataset.copy === "u" ? p.user : p.pass, copyBtn.dataset.copy === "u" ? "Username disalin" : "Password disalin"); return; }
+  if (e.target.closest("[data-show]")){
+    const v = card.querySelector("[data-pw]"), b = e.target.closest("[data-show]");
+    const hidden = v.textContent.startsWith("•");
+    v.textContent = hidden ? p.pass : "••••••"; b.textContent = hidden ? "Sembunyi" : "Lihat"; return;
+  }
+  if (e.target.closest(".row")){
+    const was = card.classList.contains("open");
+    document.querySelectorAll(".person.open").forEach(c => {
+      c.classList.remove("open");
+      c.querySelector(".row").setAttribute("aria-expanded", "false");
+      const v = c.querySelector("[data-pw]"); if (v){ v.textContent = "••••••"; c.querySelector("[data-show]").textContent = "Lihat"; }
+    });
+    if (!was){ card.classList.add("open"); card.querySelector(".row").setAttribute("aria-expanded", "true"); openKey = card.dataset.key; }
+    else openKey = null;
+  }
+});
+
+$("rail").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const el = $("L-" + b.dataset.l);
+  if (el) el.scrollIntoView({block:"start"});
+});
+
+let tt;
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1400); }
+function copy(text, msg){
+  const done = () => toast(msg);
+  if (navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done, () => fallback(text, done));
+  } else fallback(text, done);
+}
+function fallback(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch(_) { toast("Gagal menyalin"); }
+  ta.remove();
+}
+
+function setHeaderH(){ document.documentElement.style.setProperty("--hh", $("hd").offsetHeight + "px");
+  document.documentElement.style.scrollPaddingTop = $("hd").offsetHeight + 34 + "px"; }
+window.addEventListener("resize", setHeaderH);
+render(); setHeaderH();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
